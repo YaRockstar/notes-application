@@ -11,13 +11,14 @@ const Login = () => {
 
   const handleLogin = async event => {
     event.preventDefault();
+
     if (!validateEmail(email.trim())) {
-      setError('Пожалуйста, введите корректный адрес электронной почты.');
+      setError('Пожалуйста, введите корректный адрес электронной почты');
       return;
     }
 
     if (!password) {
-      setError('Пожалуйста, введите пароль.');
+      setError('Пожалуйста, введите пароль');
       return;
     }
 
@@ -40,7 +41,10 @@ const Login = () => {
               onChange={event => setEmail(event.target.value)}
             />
 
-            <PasswordInput value={password} onChange={event => setPassword(event.target.value)} />
+            <PasswordInput
+              value={password}
+              onChange={event => setPassword(event.target.value)}
+            />
 
             {error && <p className="text-red-500 text-xs pb-1">{error}</p>}
 
