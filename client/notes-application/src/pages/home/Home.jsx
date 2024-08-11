@@ -47,7 +47,13 @@ const Home = () => {
         contentLabel=""
         className="w-[40%] max-h-3/4 bg-white rounded-md mx-auto mt-14 p-5 overflow-scroll"
       >
-        <NoteEditor />
+        <NoteEditor
+          type={openNoteEditorModal.type}
+          noteData={openNoteEditorModal.data}
+          onClose={() => {
+            setOpenNoteEditorModal({ isShown: false, type: 'add', data: null });
+          }}
+        />
       </Modal>
     </>
   );
