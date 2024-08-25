@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const authenticateJwtToken = (req, res, next) => {
+export const authenticateJwtToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const jwtToken = authHeader?.split(' ')[1];
 
@@ -17,4 +17,6 @@ const authenticateJwtToken = (req, res, next) => {
   });
 };
 
-export default authenticateJwtToken;
+export const createAccessToken = (user, expiresIn = '36000m') => {
+  return jwt.sign({ user }, process.env.ACCESS_TOKEN_SECRET, { expiresIn });
+};
