@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar';
 import PasswordInput from '../../components/input/PasswordInput';
-import { validateEmail } from '../../utils/validator';
+import { validateEmail } from '../../utils/utils';
+import axiosInstance from '../../utils/api';
 
 const Signup = () => {
-  const [name, setName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
+  const navigate = useNavigate();
+
   const handleSignup = async event => {
     event.preventDefault();
 
-    if (!name) {
+    if (!fullName) {
       setError('Пожалуйста, введите имя пользователя');
       return;
     }
@@ -29,6 +32,33 @@ const Signup = () => {
     }
 
     setError('');
+
+    try {
+      const response = await axiosInstance.post('/users', {
+        fullName,
+        email,
+        password,
+      });
+
+      if (response?.data?.error) {
+        setError(
+          response.data?.message ?? 'Неизвестная ошибка. Пожалуйста, попробуйте снова.'
+        );
+        return;
+      }
+
+      if (response?.data?.accessToken && response?.data?.user?._id) {
+        localStorage.setItem('token', response.data.accessToken);
+        localStorage.setItem('userId', response.data.user._id);
+        navigate('/home');
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('Неизвестная ошибка. Пожалуйста, попробуйте снова.');
+      }
+    }
   };
 
   return (
@@ -43,8 +73,8 @@ const Signup = () => {
               type="text"
               placeholder="Имя пользователя"
               className="input-box"
-              value={name}
-              onChange={event => setName(event.target.value)}
+              value={fullName}
+              onChange={event => setFullName(event.target.value)}
             />
 
             <input
