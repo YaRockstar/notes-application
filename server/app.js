@@ -26,26 +26,36 @@ app.get('/', (req, res) => {
   res.json({ data: 'Hello, world!' });
 });
 
-app.get('/get-all-notes', authenticateJwtToken, async (req, res) => {
-  const { user } = req.user;
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
 
-  try {
-    const notes = await NoteModel.find({ userId: user._id }).sort({ isPinned: -1 });
-
-    return res.json({
-      error: false,
-      notes,
-      message: 'Возвращены все заметки пользователя',
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: 'Внутренняя ошибка сервера',
-    });
+  if (!email) {
+    return res.status(400).json({ error: true, message: 'Необходима почта' });
   }
+
+  if (!password) {
+    return res.status(400).json({ error: true, message: 'Необходим пароль' });
+  }
+
+  const user = await UserModel.findOne({ email: email });
+
+  if (!user) {
+    return res.json({ error: true, message: 'Пользователя не существует' });
+  }
+
+  if (user.email !== email || user.password !== password) {
+    return res.json({ error: true, message: 'Невалидные данные для входа' });
+  }
+
+  return res.json({
+    error: false,
+    email,
+    accessToken: createAccessToken(user),
+    message: 'Успешный вход',
+  });
 });
 
-app.post('/create-account', async (req, res) => {
+app.post('/users/', async (req, res) => {
   const { email, password, fullName } = req.body;
 
   if (!email) {
@@ -81,36 +91,49 @@ app.post('/create-account', async (req, res) => {
   });
 });
 
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+app.get('/users/:userId', authenticateJwtToken, async (req, res) => {
+  const userId = req.params.userId;
 
-  if (!email) {
-    return res.status(400).json({ error: true, message: 'Необходима почта' });
+  try {
+    const user = await UserModel.findOne({ _id: userId }).select('-password');
+
+    if (!user) {
+      return res.sendStatus(401);
+    }
+
+    return res.json({
+      error: false,
+      user,
+      message: 'Возвращен пользователь',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: 'Внутренняя ошибка сервера',
+    });
   }
-
-  if (!password) {
-    return res.status(400).json({ error: true, message: 'Необходим пароль' });
-  }
-
-  const user = await UserModel.findOne({ email: email });
-
-  if (!user) {
-    return res.json({ error: true, message: 'Пользователя не существует' });
-  }
-
-  if (user.email !== email || user.password !== password) {
-    return res.json({ error: true, message: 'Невалидные данные для входа' });
-  }
-
-  return res.json({
-    error: false,
-    email,
-    accessToken: createAccessToken(user),
-    message: 'Успешный вход',
-  });
 });
 
-app.post('/create-note', authenticateJwtToken, async (req, res) => {
+app.get('/users/:userId/notes', authenticateJwtToken, async (req, res) => {
+  const { user } = req.user;
+
+  try {
+    const notes = await NoteModel.find({ userId: user._id }).sort({ isPinned: -1 });
+
+    return res.json({
+      error: false,
+      notes,
+      message: 'Возвращены все заметки пользователя',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: 'Внутренняя ошибка сервера',
+    });
+  }
+});
+
+app.post('/users/:userId/notes', authenticateJwtToken, async (req, res) => {
   const { title, content, tags } = req.body;
   const { user } = req.user;
 
@@ -151,7 +174,7 @@ app.post('/create-note', authenticateJwtToken, async (req, res) => {
   }
 });
 
-app.put('/edit-note/:noteId', authenticateJwtToken, async (req, res) => {
+app.put('/users/:userId/notes/:noteId', authenticateJwtToken, async (req, res) => {
   const noteId = req.params.noteId;
   const { title, content, tags, isPinned } = req.body;
   const { user } = req.user;
@@ -167,15 +190,15 @@ app.put('/edit-note/:noteId', authenticateJwtToken, async (req, res) => {
       return res.status(404).json({ error: true, message: 'Заметка не найдена' });
     }
 
-    if (title) {
+    if (title !== undefined) {
       note.title = title;
     }
 
-    if (content) {
+    if (content !== undefined) {
       note.content = content;
     }
 
-    if (tags) {
+    if (tags !== undefined) {
       note.tags = tags;
     }
 
@@ -198,7 +221,7 @@ app.put('/edit-note/:noteId', authenticateJwtToken, async (req, res) => {
   }
 });
 
-app.delete('/delete-note/:noteId', authenticateJwtToken, async (req, res) => {
+app.delete('/users/:userId/notes/:noteId', authenticateJwtToken, async (req, res) => {
   const noteId = req.params.noteId;
   const { user } = req.user;
 

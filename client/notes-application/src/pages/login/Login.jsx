@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PasswordInput from '../../components/input/PasswordInput';
 import Navbar from '../../components/navbar/Navbar';
-import { validateEmail } from '../../utils/validator';
+import { validateEmail } from '../../utils/utils';
+import axiosInstance from '../../utils/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleLogin = async event => {
     event.preventDefault();
@@ -23,6 +25,25 @@ const Login = () => {
     }
 
     setError('');
+
+    try {
+      const response = await axiosInstance.post('/login', {
+        email,
+        password,
+      });
+
+      if (response?.data?.accessToken && response?.data?.user?._id) {
+        localStorage.setItem('token', response.data.accessToken);
+        localStorage.setItem('userId', response.data.user._id);
+        navigate('/home');
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('Неизвестная ошибка. Пожалуйста, попробуйте снова.');
+      }
+    }
   };
 
   return (
