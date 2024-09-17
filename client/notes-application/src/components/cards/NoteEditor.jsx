@@ -81,22 +81,20 @@ const NoteEditor = ({ note, type, onClose, getUserNotes, handleOpenToast }) => {
       </button>
 
       <div className="flex flex-col gap-2">
-        <label className="input-label">Заголовок</label>
         <input
           type="text"
-          className="text-2xl text-slate-950 outline-none"
-          placeholder="Заголовок вашей заметки"
+          className="text-xl text-slate-950 outline-none"
+          placeholder="Заголовок"
           value={title}
           onChange={({ target }) => setTitle(target.value)}
         />
       </div>
 
       <div className="flex flex-col gap-2 mt-4">
-        <label className="input-label">Содержимое</label>
         <textarea
           type="text"
           className="text-sm text-slate-950 outline-none bg-slate-50 p-2 rounded"
-          placeholder="Содержимое вашей заметки"
+          placeholder="Содержимое"
           rows={10}
           value={content}
           onChange={({ target }) => setContent(target.value)}
@@ -104,7 +102,6 @@ const NoteEditor = ({ note, type, onClose, getUserNotes, handleOpenToast }) => {
       </div>
 
       <div className="mt-3">
-        <label className="input-label">Теги</label>
         <TagInput tags={tags} setTags={setTags} />
       </div>
 

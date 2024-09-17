@@ -5,7 +5,7 @@ export const validateEmail = email => {
   return regex.test(email);
 };
 
-export const formatNoteDate = date => {
-  const moscowDate = moment(date).tz('Europe/Moscow');
+export const formatNoteDate = isoDate => {
+  const moscowDate = moment().tz(isoDate, 'Europe/Moscow');
   return moscowDate.format('DD-MM-YYYY');
 };

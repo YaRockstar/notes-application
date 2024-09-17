@@ -7,6 +7,9 @@ import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/api';
 import ToastMessage from '../../components/toastMessage/ToastMessage';
+import EmptyCard from '../../components/cards/EmptyCard';
+import AddNotedImage from '../../assets/images/add-notes.svg';
+import NoDataImage from '../../assets/images/no-data.svg';
 
 const Home = () => {
   const [openNoteEditorModal, setOpenNoteEditorModal] = useState({
@@ -14,6 +17,7 @@ const Home = () => {
     type: 'add',
     data: null,
   });
+
   const [showToastMessage, setShowToastMessage] = useState({
     isShown: false,
     type: 'add',
@@ -22,6 +26,9 @@ const Home = () => {
 
   const [userInfo, setUserInfo] = useState(null);
   const [userNotes, setUserNotes] = useState([]);
+
+  const [isSearch, setIsSearch] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -60,6 +67,7 @@ const Home = () => {
   };
 
   const getUserNotes = async () => {
+    setIsLoading(true);
     try {
       const userId = localStorage.getItem('userId');
       const response = await axiosInstance.get(`/users/${userId}/notes`);
@@ -68,10 +76,63 @@ const Home = () => {
       }
     } catch (error) {
       console.log('Неизвестная ошибка. Пожалуйста, попробуйте снова.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const deleteNode = async data => {};
+  const deleteNode = async note => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await axiosInstance.delete(`/users/${userId}/notes/${note._id}`);
+
+      if (response?.data?.noteId) {
+        handleOpenToast('delete', 'Заметка успешно удалена');
+        getUserNotes();
+      }
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.log('Неизвестная ошибка. Пожалуйста, попробуйте снова.');
+      }
+    }
+  };
+
+  const onSearchNotes = async query => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await axiosInstance.get(`/users/${userId}/notes/search`, {
+        params: { query },
+      });
+
+      if (response?.data?.notes) {
+        setIsSearch(true);
+        setUserNotes(response.data.notes);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const updateNoteStatus = async note => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await axiosInstance.put(`/users/${userId}/notes/${note._id}`, {
+        isPinned: !note.isPinned,
+      });
+
+      if (response?.data?.note) {
+        handleOpenToast('edit', 'Заметка успешно изменена');
+        getUserNotes();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setIsSearch(false);
+    getUserNotes();
+  };
 
   useEffect(() => {
     getUserInfo();
@@ -79,26 +140,43 @@ const Home = () => {
     return () => {};
   }, []);
 
-  return (
+  return isLoading ? (
+    <></>
+  ) : (
     <>
-      <Navbar userInfo={userInfo} />
+      <Navbar
+        userInfo={userInfo}
+        onSearchNotes={onSearchNotes}
+        handleClearSearch={handleClearSearch}
+      />
 
       <div className="container mx-auto">
-        <div className="grid grid-cols-3 gap-4 mt-8">
-          {userNotes.map(note => (
-            <NoteCard
-              key={note._id}
-              title={note.title}
-              date={note.createdOn}
-              content={note.content}
-              tags={note.tags}
-              isPinned={note.isPinned}
-              onEdit={() => handleEdit(note)}
-              onDelete={() => {}}
-              onPinNote={() => {}}
-            />
-          ))}
-        </div>
+        {userNotes.length > 0 ? (
+          <div className="grid grid-cols-3 gap-4 mt-8">
+            {userNotes.map(note => (
+              <NoteCard
+                key={note._id}
+                title={note.title}
+                date={note.createdOn}
+                content={note.content}
+                tags={note.tags}
+                isPinned={note.isPinned}
+                onEdit={() => handleEdit(note)}
+                onDelete={() => deleteNode(note)}
+                onPinNote={() => updateNoteStatus(note)}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyCard
+            imageSource={isSearch ? NoDataImage : AddNotedImage}
+            message={
+              isSearch
+                ? 'По запросу ничего не найдено'
+                : 'Создайте свою первую заметку! Нажмите на кнопку «Добавить»'
+            }
+          />
+        )}
       </div>
 
       <button
