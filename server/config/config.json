@@ -1,0 +1,4 @@
+{
+  "connectionCloudMongoDB": "mongodb+srv://admin:123qweASD@notesapp.hfjfw.mongodb.net/?retryWrites=true&w=majority&appName=notesapp",
+  "connection": "mongodb://127.0.0.1:27017/notesapp"
+}

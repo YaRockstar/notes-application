@@ -6,7 +6,7 @@ import { authenticateJwtToken } from './utils/authUtil.js';
 import { createAccessToken } from './utils/authUtil.js';
 import UserModel from './models/user.model.js';
 import NoteModel from './models/note.model.js';
-import config from './config.json' assert { type: 'json' };
+import config from './config/config.json' assert { type: 'json' };
 
 dotenv.config();
 mongoose.connect(config.connection);
