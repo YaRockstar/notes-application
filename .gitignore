@@ -1,4 +1,4 @@
 .vscode
 server/.env
-server/config.json
+server/config/config.json
 client/notes-application/src/utils/constants.js
