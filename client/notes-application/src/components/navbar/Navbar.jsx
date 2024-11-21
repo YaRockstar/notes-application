@@ -34,14 +34,16 @@ const Navbar = ({ userInfo, onSearchNotes, handleClearSearch }) => {
         />
       </h2>
 
-      <SearchBar
-        value={searchQuery}
-        onChange={({ target }) => {
-          setSearchQuery(target.value);
-        }}
-        handleSearch={handleSearch}
-        onClearSearch={onClearSearch}
-      />
+      {userInfo && (
+        <SearchBar
+          value={searchQuery}
+          onChange={({ target }) => {
+            setSearchQuery(target.value);
+          }}
+          handleSearch={handleSearch}
+          onClearSearch={onClearSearch}
+        />
+      )}
 
       {userInfo && <Profile userInfo={userInfo} onLogout={onLogout} />}
     </div>

@@ -35,6 +35,7 @@ class NoteModel {
       $or: [
         { title: { $regex: new RegExp(query, 'i') } },
         { content: { $regex: new RegExp(query, 'i') } },
+        { tags: { $regex: new RegExp(query, 'i') } },
       ],
     });
   }
